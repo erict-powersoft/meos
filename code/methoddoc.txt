@@ -1,0 +1,134 @@
+#head{Competitors}
+#table{2}
+{#mono{Age}}{Age (on last day of current year)}
+{#mono{AgeHighLimit}}{Age above or equal implies senior/pensioner}
+{#mono{AgeLowLimit}}{Age below or equal implies youth}
+{#mono{Bib}}{Bib}
+{#mono{BirthYear}}{Year of birth}
+{#mono{CardControls[]}}{Runner's card, matched control ids (-1 for unmatched punches)}
+{#mono{CardPunches[]}}{Runner's card, punch codes}
+{#mono{CardTimes[]}}{Runner's card, punch times}
+{#mono{CheckTime}}{Runner check time}
+{#mono{ClassDataA}}{Extra assigned class data (A)}
+{#mono{ClassDataB}}{Extra assigned class data (B)}
+{#mono{ClubId}}{Club id number}
+{#mono{ComputedPoints}}{Points as computed by your point method}
+{#mono{ComputedStatus}}{Status as computed by your status method}
+{#mono{ComputedTime}}{Time as computed by your time method}
+{#mono{Course[]}}{Runner's course}
+{#mono{CourseId}}{Runner's course id}
+{#mono{CourseLength}}{Length of course}
+{#mono{DataA}}{Extra assigned data (A)}
+{#mono{DataB}}{Extra assigned data (B)}
+{#mono{DistrictId}}{District id number}
+{#mono{Fee}}{Runner/team fee}
+{#mono{Finish}}{Runner/team finish time}
+{#mono{InputNumber}}{User defined input parameter}
+{#mono{InputPlace}}{Runner/team input place}
+{#mono{InputPoints}}{Runner/team input points}
+{#mono{InputStatus}}{Runner/team input status}
+{#mono{InputTime}}{Runner/team input running time}
+{#mono{Leg}}{Leg number in team, zero indexed}
+{#mono{LegPlace[]}}{Place on course leg}
+{#mono{LegTimeAfter[]}}{Time behind leg winner}
+{#mono{LegTimeDeviation[]}}{Deviation +/- from expected time on course leg}
+{#mono{MaxTime}}{Maximum allowed running time}
+{#mono{Place}}{Runner/team place}
+{#mono{PointAdjustment}}{Runner/team rogaining points adjustment}
+{#mono{PointGross}}{Rogaining points before automatic reduction}
+{#mono{PointOvertime}}{Runner/team rogaining overtime}
+{#mono{PointReduction}}{Automatic rogaining point reduction}
+{#mono{Points}}{Runner/team rogaining points}
+{#mono{Shorten}}{Number of shortenings}
+{#mono{ShortestClassTime}}{Shortest time in class}
+{#mono{SplitTimes[]}}{Runner's split times}
+{#mono{SplitTimesAccumulated[]}}{Runner's total running time to control}
+{#mono{StagePlace[]}}{Runner/team earlier stage places}
+{#mono{StagePoints[]}}{Runner/team earlier stage points}
+{#mono{StageStatus[]}}{Runner/team earlier stage statuses}
+{#mono{StageTime[]}}{Runner/team earlier stage running times}
+{#mono{Start}}{Runner/team start time}
+{#mono{Status}}{Runner/team status}
+{#mono{StatusCANCEL}}{Status code for canceled entry}
+{#mono{StatusDNF}}{Status code for not finishing}
+{#mono{StatusDNS}}{Status code for not starting}
+{#mono{StatusDQ}}{Status code for disqualification}
+{#mono{StatusMAX}}{Status code for a time over the maximum}
+{#mono{StatusMP}}{Status code for a missing punch}
+{#mono{StatusNoTiming}}{Status code for no timing}
+{#mono{StatusNotCompetiting}}{Status code for not competing}
+{#mono{StatusOK}}{Status code for a valid result}
+{#mono{StatusOutOfCompetition}}{Status code for running out-of-competition (OOC)}
+{#mono{StatusUnknown}}{Status code for an unknown result}
+{#mono{Time}}{Runner/team running time}
+{#mono{TimeAdjustment}}{Runner/team time adjustment}
+{#mono{TotalPlace}}{Runner/team total place}
+{#mono{TotalStatus}}{Runner/team total status}
+{#mono{TotalTime}}{Runner/team total running time}
+#head{Team}
+#table{2}
+{#mono{Bib}}{Bib}
+{#mono{ClassDataA}}{Extra assigned class data (A)}
+{#mono{ClassDataB}}{Extra assigned class data (B)}
+{#mono{ClubId}}{Club id number}
+{#mono{ComputedPoints}}{Points as computed by your point method}
+{#mono{ComputedStatus}}{Status as computed by your status method}
+{#mono{ComputedTime}}{Time as computed by your time method}
+{#mono{DataA}}{Extra assigned data (A)}
+{#mono{DataB}}{Extra assigned data (B)}
+{#mono{DistrictId}}{District id number}
+{#mono{Fee}}{Runner/team fee}
+{#mono{Finish}}{Runner/team finish time}
+{#mono{InputNumber}}{User defined input parameter}
+{#mono{InputPlace}}{Runner/team input place}
+{#mono{InputPoints}}{Runner/team input points}
+{#mono{InputStatus}}{Runner/team input status}
+{#mono{InputTime}}{Runner/team input running time}
+{#mono{MaxTime}}{Maximum allowed running time}
+{#mono{PatrolRogainingOvertime}}{Patrol overtime}
+{#mono{PatrolRogainingReduction}}{Patrol score reduction}
+{#mono{PatrolRogainingScore}}{Patrol score, rogaining}
+{#mono{Place}}{Runner/team place}
+{#mono{PointAdjustment}}{Runner/team rogaining points adjustment}
+{#mono{PointGross}}{Rogaining points before automatic reduction}
+{#mono{PointOvertime}}{Runner/team rogaining overtime}
+{#mono{PointReduction}}{Automatic rogaining point reduction}
+{#mono{Points}}{Runner/team rogaining points}
+{#mono{RunnerCardControls[][]}}{Matched control ids (-1 for unmatched) for each team member}
+{#mono{RunnerCardPunches[][]}}{Punch codes for each team member}
+{#mono{RunnerCardTimes[][]}}{Punch times for each team member}
+{#mono{RunnerCourse[][]}}{Runner's course}
+{#mono{RunnerDataA[]}}{Extra assigned data (A) for each team member}
+{#mono{RunnerDataB[]}}{Extra assigned data (B) for each team member}
+{#mono{RunnerFinish[]}}{Finish time for each team member}
+{#mono{RunnerOutputNumbers[][]}}{Runner's method output numbers}
+{#mono{RunnerOutputTimes[][]}}{Runner's method output times}
+{#mono{RunnerPoints[]}}{Rogaining points for each team member}
+{#mono{RunnerSplitTimes[][]}}{Runner's split times}
+{#mono{RunnerStart[]}}{Start time for each team member}
+{#mono{RunnerStatus[]}}{Status for each team member}
+{#mono{RunnerTime[]}}{Running time for each team member}
+{#mono{Shorten}}{Number of shortenings}
+{#mono{ShortestClassTime}}{Shortest time in class}
+{#mono{StagePlace[]}}{Runner/team earlier stage places}
+{#mono{StagePoints[]}}{Runner/team earlier stage points}
+{#mono{StageStatus[]}}{Runner/team earlier stage statuses}
+{#mono{StageTime[]}}{Runner/team earlier stage running times}
+{#mono{Start}}{Runner/team start time}
+{#mono{Status}}{Runner/team status}
+{#mono{StatusCANCEL}}{Status code for canceled entry}
+{#mono{StatusDNF}}{Status code for not finishing}
+{#mono{StatusDNS}}{Status code for not starting}
+{#mono{StatusDQ}}{Status code for disqualification}
+{#mono{StatusMAX}}{Status code for a time over the maximum}
+{#mono{StatusMP}}{Status code for a missing punch}
+{#mono{StatusNoTiming}}{Status code for no timing}
+{#mono{StatusNotCompetiting}}{Status code for not competing}
+{#mono{StatusOK}}{Status code for a valid result}
+{#mono{StatusOutOfCompetition}}{Status code for running out-of-competition (OOC)}
+{#mono{StatusUnknown}}{Status code for an unknown result}
+{#mono{Time}}{Runner/team running time}
+{#mono{TimeAdjustment}}{Runner/team time adjustment}
+{#mono{TotalPlace}}{Runner/team total place}
+{#mono{TotalStatus}}{Runner/team total status}
+{#mono{TotalTime}}{Runner/team total running time}
