@@ -25,17 +25,17 @@
 
 //ABCDEFGHIJKLMNOPQ
 int getMeosBuild() {
-  string revision("$Rev: 1356 $");
+  string revision("$Rev: 1386 $");
   return 174 + atoi(revision.substr(5, string::npos).c_str());
 }
 
 wstring getMeosDate() {
-  wstring date(L"$Date: 2024-05-02 19:59:00 +0200 (tor, 02 maj 2024) $");
+  wstring date(L"$Date: 2024-07-21 09:13:03 +0200 (sön, 21 jul 2024) $");
   return date.substr(7,10);
 }
 
 wstring getBuildType() {
-  return L""; // No parantheses (...)
+  return L"Update 2"; // No parantheses (...)
 }
 
 wstring getMajorVersion() {
@@ -139,6 +139,9 @@ void getSupporters(vector<wstring>& supp, vector<wstring>& developSupp){
   supp.emplace_back(L"Milen Marinov");
   supp.emplace_back(L"Miroslav Kollar, KOB Kysak");
   developSupp.emplace_back(L"FIF Hillerød Orientering");
+  supp.emplace_back(L"Järla Orientering");
+  supp.emplace_back(L"Stein Östby, Malmö OK");
+  supp.emplace_back(L"Eric Teutsch (o-store.ca)");
 
   reverse(supp.begin(), supp.end());
 }
