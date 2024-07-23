@@ -245,6 +245,7 @@ void TabAuto::timerCallback(gdioutput &gdi) {
   for (it = machines.begin(); it != machines.end(); ++it) {
     AutoMachine* am = *it;
     if (am && am->interval && tc >= am->timeout && !am->isEditMode()) {
+        OutputDebugStringW(L"Calling automachine process now\n");
       try {
         am->process(gdi, oe, SyncTimer);
       }
@@ -256,7 +257,8 @@ void TabAuto::timerCallback(gdioutput &gdi) {
       }
       catch (...) {
         msg = L"Ett okänt fel inträffade.";
-      }      
+      }
+      OutputDebugStringW(L"Returned from automachine process\n");
       reload = true;
       if (am->removeMe())
         toRemove.push_back(am);

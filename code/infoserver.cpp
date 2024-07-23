@@ -868,6 +868,7 @@ void xmlbuffer::write(const char *tag,
 }
 
 void xmlbuffer::startXML(xmlparser &xml, const wstring &dest) {
+    OutputDebugStringW(L"---> Starting...\n");
   xml.openOutput(dest.c_str(), false);
   if (complete) {
     xml.startTag("MOPComplete", "xmlns", "http://www.melin.nu/mop");

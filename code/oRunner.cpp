@@ -6717,9 +6717,10 @@ int oRunner::getRogainingReduction(bool computed) const {
 }
 
 int oRunner::getRogainingPointsGross(bool computed) const {
-  if (computed)
-    return getRogainingPoints(computed, false) + tReduction;
-  else
+// Eric Teutsch 20240612 Results problem  ET2 fix
+//  if (computed)
+//    return getRogainingPoints(computed, false) + tReduction;
+//  else
     return tRogainingPointsGross;
 }
 
@@ -6916,6 +6917,7 @@ RunnerStatus  oAbstractRunner::getStageResult(int stage, int &time, int &point, 
   vector<int> points;
   vector<int> places;
   getInputResults(st, times, points, places);
+  OutputDebugStringW(L"get stage results");
   if (size_t(stage) >= st.size()) {
     time = 0;
     point = 0;

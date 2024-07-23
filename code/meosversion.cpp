@@ -35,7 +35,7 @@ wstring getMeosDate() {
 }
 
 wstring getBuildType() {
-  return L"Update 2"; // No parantheses (...)
+  return L"Update 2-ET"; // No parantheses (...)
 }
 
 wstring getMajorVersion() {

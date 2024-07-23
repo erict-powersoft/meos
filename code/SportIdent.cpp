@@ -836,6 +836,7 @@ int SportIdent::MonitorTCPSI(WORD port, int localZeroTime)
   //If it returns non-zero quit, as this indicates error
 
   if (bind(server,(sockaddr*)&local,sizeof(local))!=0) {
+      int x = WSAGetLastError();
     closesocket(server);
     return 0;
   }

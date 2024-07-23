@@ -4104,11 +4104,30 @@ void oEvent::reEvaluateAll(const set<int> &cls, bool doSync)
     if (!it->isRemoved()) {
       if (!cls.empty() && cls.count(it->getClassId(true)) == 0)
         continue;
-
+      // TEMP START
+      if (it->tRealName == L"Kristina Thuresson")
+      {
+          OutputDebugStringW(L"Kristina Thuresson found (1)\n");
+          if (it->tempStatus != 0 && it->tempStatus != 0xCCCCCCCC)
+          {
+              OutputDebugStringW(L"status NOT unknown\n");
+          }
+      }
+      // TEMP END
       if (!it->tInTeam || it->Class != it->tInTeam->Class || (it->Class && (it->Class->isQualificationFinalBaseClass())))
         it->apply(ChangeType::Quiet, nullptr);
       it->storeTimes();
       it->clearOnChangedRunningTime();
+      // TEMP START
+      if (it->tRealName == L"Kristina Thuresson")
+      {
+          OutputDebugStringW(L"Kristina Thuresson found (2)\n");
+          if (it->tempStatus != 0 && it->tempStatus != 0xCCCCCCCC)
+          {
+              OutputDebugStringW(L"status now NOT unknown\n");
+          }
+      }
+      // TEMP END
     }
   }
   //reCalculateLeaderTimes(0);

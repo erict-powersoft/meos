@@ -376,7 +376,14 @@ void GeneralResult::calculateIndividualResults(vector<oRunner *> &runners,
       runners[k]->tmpResult.runningTime = deduceTime(*runners[k], runners[k]->tmpResult.startTime);
       runners[k]->tmpResult.status = deduceStatus(*runners[k]);
       runners[k]->tmpResult.points = deducePoints(*runners[k]);
-
+      if (runners[k]->getName() == L"Kristina Thuresson")
+      {
+          OutputDebugStringW(L"Kristina Thuresson found - 9\n");
+          if (runners[k]->getPlaceS() != L"7")
+          {
+              OutputDebugStringW(L"Kristina is not 7th!\n");
+          }
+      }
       runnerScore[k].score = score(*runners[k], runners[k]->tmpResult.status,
                                    runners[k]->tmpResult.runningTime,
                                    runners[k]->tmpResult.points, false);
@@ -820,7 +827,12 @@ pair<int,int> DynamicResult::score(oRunner &runner, RunnerStatus st, int time, i
     parser.addSymbol("ComputedTime", time / timeConstSecond);
     parser.addSymbol("ComputedStatus", st);
     parser.addSymbol("ComputedPoints", points);
-    return make_pair(0, getMethod(MRScore)->evaluate(parser));
+    if (runner.getName() == L"Barbara Sharp")
+    {
+        OutputDebugStringW(L"found her...");
+    }
+    pair<int,int> thingy = make_pair(0, getMethod(MRScore)->evaluate(parser));
+    return thingy;
   }
   else if (getMethodSource(MRScore).empty())
     return GeneralResult::score(runner, st, time, points, asTeamMember);
@@ -844,10 +856,21 @@ int DynamicResult::deduceTime(oRunner &runner, int startTime) const {
 }
 
 int DynamicResult::deducePoints(oRunner &runner) const {
-  if (getMethod(MDeduceRPoints))
-    return getMethod(MDeduceRPoints)->evaluate(parser);
-  else if (getMethodSource(MDeduceRPoints).empty())
-    return GeneralResult::deducePoints(runner);
+    int points;
+    if (getMethod(MDeduceRPoints))
+    {
+        if (runner.getName() == L"Barbara Sharp")
+        {
+            OutputDebugStringW(L"found her");
+        }
+        points = getMethod(MDeduceRPoints)->evaluate(parser);
+        return points;
+    }
+    else if (getMethodSource(MDeduceRPoints).empty())
+    {
+        points = GeneralResult::deducePoints(runner);
+        return points;
+    }
   else throw meosException("Syntax error");
 
 }
@@ -1176,6 +1199,14 @@ void DynamicResult::prepareCommon(oAbstractRunner &runner, bool classResult) con
   parser.addSymbol("Points", runner.getRogainingPoints(useComputed, false));
   parser.addSymbol("PointReduction", runner.getRogainingReduction(useComputed));
   parser.addSymbol("PointOvertime", runner.getRogainingOvertime(useComputed) / timeConstSecond);
+  if (runner.getName() == L"Kristina Thuresson")
+  {
+      OutputDebugStringW(L"Kristina Thuresson found - 8\n");
+      if (runner.getPlaceS() != L"7")
+      {
+          OutputDebugStringW(L"Kristina is not 7th!\n");
+      }
+  }
   parser.addSymbol("PointGross", runner.getRogainingPointsGross(useComputed));
 
   parser.addSymbol("PointAdjustment", runner.getPointAdjustment());
@@ -1511,7 +1542,6 @@ void GeneralResult::calculateIndividualResults(vector<pRunner> &runners,
                                                vector<GeneralResultInfo> &results) {
 
   results.reserve(runners.size());
-
   if (resTag.empty() && resType == ClassWise) {
     GeneralResultInfo ri;
     if (controlId.second == oPunch::PunchFinish &&
@@ -1521,10 +1551,34 @@ void GeneralResult::calculateIndividualResults(vector<pRunner> &runners,
         set<int> clsId;
         for (pRunner r : runners) {
           clsId.insert(r->getClassId(true));
+          // TEMP START
+          if (r->getName() == L"Kristina Thuresson")
+          {
+              OutputDebugStringW(L"Kristina Thuresson found - 3\n");
+              if (r->getPlaceS()  != L"7")
+              {
+                  OutputDebugStringW(L"Kristina is not 7th!\n");
+              }
+              if (r->getTempStatus() != 0 && r->getTempStatus() != 0xCCCCCCCC)
+              {
+                  OutputDebugStringW(L"status NOT unknown\n");
+              }
+          }
+          // TEMP END
         }
         oe.calculateResults(clsId, oEvent::ResultType::ClassResult, inclPreliminary);
         for (pRunner r : runners) {
-          ri.status = r->getStatus();
+            // TEMP START
+            if (r->getName() == L"Kristina Thuresson")
+            {
+                OutputDebugStringW(L"Kristina Thuresson found - 4\n");
+                if (r->getTempStatus() != 0 && r->getTempStatus() != 0xCCCCCCCC)
+                {
+                    OutputDebugStringW(L"status NOT unknown\n");
+                }
+            }
+            // TEMP END
+            ri.status = r->getStatus();
           if (ri.status == StatusUnknown) {
             if (r->getFinishTime() == 0) {
               if (!inclForestRunners)
@@ -1548,8 +1602,19 @@ void GeneralResult::calculateIndividualResults(vector<pRunner> &runners,
           ri.time = r->getRunningTime(true);
           ri.src = r;
           results.push_back(ri);
+          // TEMP START
+          if (r->getName() == L"Kristina Thuresson")
+          {
+              OutputDebugStringW(L"Kristina Thuresson found - 5\n");
+              if (r->getTempStatus() != 0 && r->getTempStatus() != 0xCCCCCCCC)
+              {
+                  OutputDebugStringW(L"status NOT unknown\n");
+              }
+          }
+          // TEMP END
+
         }
-      }
+      } // end !totalResults
       else {
         oe.calculateResults(set<int>(), oEvent::ResultType::TotalResult, inclPreliminary);
         for (pRunner r : runners) {
@@ -1672,6 +1737,8 @@ GeneralResult::calculateTeamResults(vector<pTeam> &teams,
                                     int leg,
                                     const pair<int, int> &controlId,
                                     bool totalResults,
+    bool inclForestRunners,
+    bool inclPreliminary,
                                     const string &resTag,
                                     oListInfo::ResultType resType,
                                     int inputNumber,
@@ -1692,8 +1759,15 @@ GeneralResult::calculateTeamResults(vector<pTeam> &teams,
         ri.status = r->getStatus();
         if (ri.status == StatusUnknown) {
           if (r->getFinishTime() == 0)
-            continue;
-          ri.status = StatusOK; // Preliminary status
+              if (!inclForestRunners)
+                continue;
+              else {
+                  if (r->getClubId() == cVacantId)
+                      continue;
+                  ri.status = StatusUnknown;
+              }
+          else
+              ri.status = StatusOK; // Preliminary status
         }
         if (ri.status == StatusOK)
           ri.place = r->getPlace();

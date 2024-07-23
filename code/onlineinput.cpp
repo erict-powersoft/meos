@@ -288,6 +288,7 @@ void OnlineInput::process(gdioutput &gdi, oEvent *oe, AutoSyncType ast) {
   oe->autoSynchronizeLists(true);
 
   try {
+      OutputDebugStringW(L"Starting remote input request\n");
     Download dwl;
     dwl.initInternet();
     ProgressWindow pw(0);
@@ -308,8 +309,8 @@ void OnlineInput::process(gdioutput &gdi, oEvent *oe, AutoSyncType ast) {
     wstring result = getTempFile();
     dwl.downloadFile(url + q, result, key);
     dwl.downLoadNoThread();
-
-    if (!useROCProtocol) {
+    OutputDebugStringW(L"Processing downloaded remote-input data\n");
+      if (!useROCProtocol) {
       xmlobject res;
       xmlparser xml;
       try {
@@ -379,6 +380,10 @@ void OnlineInput::processPunches(oEvent &oe, const xmlList &punches) {
 
     int card = punches[k].getObjectInt("card");
     int time = punches[k].getObjectInt("time") / (10 / timeConstSecond);
+    
+    if (!oe.useSubSecond())
+        time -= (time % timeConstSecond);
+
     time = oe.getRelativeTime(formatTimeHMS(time));
 
     if (startno.length() > 0)
@@ -413,6 +418,9 @@ void OnlineInput::processPunches(oEvent &oe, list< vector<wstring> > &rocData) {
       int card = _wtoi(line[2].c_str());
       wstring timeS = line[3].substr(11);
       int time = oe.getRelativeTime(timeS);
+
+      if (!oe.useSubSecond())
+          time -= (time % timeConstSecond);
 
       int originalCode = code;
       if (specialPunches.count(code))

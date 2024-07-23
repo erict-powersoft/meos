@@ -701,7 +701,10 @@ void RestServer::getData(oEvent &oe, const string &what, const multimap<string, 
       const string& prl = param.find("preliminary")->second;
       includePreliminary = atoi(prl.c_str()) > 0 || _stricmp(prl.c_str(), "true") == 0;
     }
-
+    if (includePreliminary == false)
+    {
+        OutputDebugStringW(L"Preliminary is false\n");
+    }
     string resTag;
     if (param.count("module") > 0)
       resTag = param.find("module")->second;
@@ -900,7 +903,7 @@ void RestServer::getData(oEvent &oe, const string &what, const multimap<string, 
         writePerson(res, reslist, true, resType == oListInfo::Coursewise, rProp);
       }
       reslist.endTag();
-    }
+    } // end !team
     else {
       //Teams 
       vector<pTeam> teams;
@@ -915,7 +918,7 @@ void RestServer::getData(oEvent &oe, const string &what, const multimap<string, 
         }
         teams.swap(r2);
       }
-      auto context = GeneralResult::calculateTeamResults(teams, leg, controlId, totalResult, resTag, resType, inputNumber, oe, results);
+      auto context = GeneralResult::calculateTeamResults(teams, leg, controlId, totalResult, inclRunnersInForest, includePreliminary, resTag, resType, inputNumber, oe, results);
 
       sort(results.begin(), results.end());
       auto &reslist = out.startTag("results", prop);
@@ -978,6 +981,7 @@ void RestServer::getData(oEvent &oe, const string &what, const multimap<string, 
       reslist.endTag();
 
     }
+
   }
   else if (what == "status") {
     InfoMeosStatus iStatus;
@@ -1041,6 +1045,7 @@ void RestServer::getData(oEvent &oe, const string &what, const multimap<string, 
 
   if (out.size() > 0) {
     xmlparser mem;
+    OutputDebugStringW(L"--->Start (in restserver.cpp:1035)\n");
     mem.openMemoryOutput(false);
     mem.startTag("MOPComplete", "xmlns", "http://www.melin.nu/mop");
     out.commit(mem, 100000);

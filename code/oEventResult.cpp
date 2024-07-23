@@ -246,6 +246,17 @@ void oEvent::calculateResults(const set<int> &classes, ResultType resultType, bo
       if (c != classToResultModule.end() && c->second != -1) {
         runnersByResultModule[c->second].second.push_back(&r);
       }
+      // TEMP START
+      if (r.tRealName == L"Kristina Thuresson")
+      {
+          OutputDebugStringW(L"Kristina Thuresson found - 0\n");
+          if (r.tempStatus != 0 && r.tempStatus != 0xCCCCCCCC)
+          {
+              OutputDebugStringW(L"status NOT unknown\n");
+          }
+      }
+      // TEMP END
+
       runners.push_back(&r);
       
       if (resOK) {
@@ -283,8 +294,28 @@ void oEvent::calculateResults(const set<int> &classes, ResultType resultType, bo
 
     for (auto r : runners) {
       r->tComputedPoints = -1;
+      // TEMP START
+      if (r->getName() == L"Kristina Thuresson")
+      {
+          OutputDebugStringW(L"Kristina Thuresson found - 6\n");
+          if (r->getTempStatus() != 0 && r->getTempStatus() != 0xCCCCCCCC)
+          {
+              OutputDebugStringW(L"status NOT unknown\n");
+          }
+      }
+      // TEMP END
       r->tComputedTime = r->getRunningTime(false);
       r->tComputedStatus = r->getStatus();
+      // TEMP START
+      if (r->getName() == L"Kristina Thuresson")
+      {
+          OutputDebugStringW(L"Kristina Thuresson found - 7\n");
+          if (r->getTempStatus() != 0 && r->getTempStatus() != 0xCCCCCCCC)
+          {
+              OutputDebugStringW(L"status NOT unknown\n");
+          }
+      }
+      // TEMP END
     }
   }
 
@@ -366,6 +397,10 @@ void oEvent::calculateRunnerResults(ResultType resultType,
     }
     else if (!totalResults) {
       RunnerStatus st = useComputedResult ? it->getStatusComputed(false) : it->getStatus();
+//      if (useComputedResult == false)
+//      {
+//          OutputDebugStringW(L"useComputedResult is false!\n");
+//      }
       if (st == StatusOK || (includePreliminary && st == StatusUnknown && it->FinishTime > 0))
         score = it->getRunningTime(useComputedResult) + it->getNumShortening() * timeConstHour * 24 * 8;
       else
