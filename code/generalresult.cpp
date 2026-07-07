@@ -831,12 +831,6 @@ pair<int,int> DynamicResult::score(oRunner &runner, RunnerStatus st, int time, i
     parser.addSymbol("ComputedTime", time / timeConstSecond);
     parser.addSymbol("ComputedStatus", st);
     parser.addSymbol("ComputedPoints", points);
-    if (runner.getName() == L"Barbara Sharp")
-    {
-        OutputDebugStringW(L"found her...");
-    }
-    pair<int,int> thingy = make_pair(0, getMethod(MRScore)->evaluate(parser));
-    return thingy;
   }
   else if (getMethodSource(MRScore).empty())
     return GeneralResult::score(runner, st, time, points, asTeamMember);
@@ -860,21 +854,6 @@ int DynamicResult::deduceTime(oRunner &runner, int startTime) const {
 }
 
 int DynamicResult::deducePoints(oRunner &runner) const {
-    int points;
-    if (getMethod(MDeduceRPoints))
-    {
-        if (runner.getName() == L"Barbara Sharp")
-        {
-            OutputDebugStringW(L"found her");
-        }
-        points = getMethod(MDeduceRPoints)->evaluate(parser);
-        return points;
-    }
-    else if (getMethodSource(MDeduceRPoints).empty())
-    {
-        points = GeneralResult::deducePoints(runner);
-        return points;
-    }
   else throw meosException("Syntax error");
 
 }
@@ -1089,7 +1068,11 @@ void DynamicResult::declareSymbols(DynamicMethods m, bool clear) const {
   }
 
   parser.declareSymbol("MaxTime", "Maximum allowed running time", false);
-
+  //EST20260629 START Issue #114
+  parser.declareSymbol("RogainingType", "Type of Rogaining: 0, 1 or 2", false);
+  parser.declareSymbol("RReductionMethod", "1 = on started minute", false);
+  parser.declareSymbol("RLatepoints", "1 = if allowed to collect after", false);
+  //EST20260629 END
   parser.declareSymbol("RGTimeLimit", "Rogaining time limit", false);
   parser.declareSymbol("RGMaxPoints", "Maximum number of rogaining points", false);
   parser.declareSymbol("RGPointLimit", "Rogaining time limit", false);
@@ -1422,6 +1405,16 @@ void DynamicResult::prepareCalculations(oRunner &runner, bool classResult) const
   }
 
   pCourse crs = runner.getCourse(true);
+  //EST20260629 START Issue #114
+  parser.addSymbol("RTimeLimit", crs->getDCI().getInt("RTimeLimit") / timeConstSecond);
+  parser.addSymbol("RPointLimit", crs->getDCI().getInt("RPointLimit"));
+  parser.addSymbol("RogainingType", crs->getRogainingType());
+  parser.addSymbol("RPointsPerMin", crs->getRogainingPointsPerMinute());
+  parser.addSymbol("RReductionMethod", crs->getDCI().getInt("RReductionMethod"));
+  // Only show "collect late points" if it is time-based rogaining
+  parser.addSymbol("RLatepoints", (crs->getRogainingType() == 1) ? ((crs->getDCI().getInt("NoLatePoints") == 1) ? 0 : 1) : 0);
+  
+  //EST20260629 END
   const vector<SplitData> &sp = runner.getSplitTimes(false);
 
   if (crs) {
