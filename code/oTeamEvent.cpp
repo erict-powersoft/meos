@@ -1,6 +1,6 @@
 ﻿/************************************************************************
     MeOS - Orienteering Software
-    Copyright (C) 2009-2024 Melin Software HB
+    Copyright (C) 2009-2026 Melin Software HB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,14 +31,13 @@
 #include "gdioutput.h"
 #include "oDataContainer.h"
 
-#include "random.h"
-#include "SportIdent.h"
 #include "Localizer.h"
 #include "intkeymapimpl.hpp"
 #include "MeOSFeatures.h"
 
 #include "meos_util.h"
-#include "meos.h"
+#include "xmlparser.h"
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -137,12 +136,21 @@ int oEvent::getFreeStartNo() const {
 }
 
 
-pTeam oEvent::getTeamByName(const wstring &pName) const {
-  oTeamList::const_iterator it;
-
-  for (it=Teams.begin(); it != Teams.end(); ++it) {
-    if (!it->isRemoved() && it->sName==pName)
-      return pTeam(&*it);
+pTeam oEvent::getTeamByName(const wstring &pName, int classId) const {
+  if (classId <= 0) {
+    for (auto &t : Teams) {
+      if (!t.isRemoved() && t.sName == pName)
+        return pTeam(&t);
+    }
+  }
+  else {
+    for (auto &t : Teams) {
+      if (!t.isRemoved() && t.sName == pName) {
+        if (t.Class == nullptr || t.Class->getId() != classId)
+          continue;
+        return pTeam(&t);
+      }
+    }
   }
   return 0;
 }
@@ -858,8 +866,8 @@ void oTeam::fillInSortData(SortOrder so, int leg, bool linearLeg, map<int, int> 
       tmpSortStatus = 1;
     return;
   }
-  else if (so == ClassPoints) {
-    bool totalResult = so == ClassTotalResult;
+  else if (so == ClassPoints || so == ClassTotalPoints) {
+    bool totalResult = so == ClassTotalPoints;
     setTmpTime(getRunningTime(true));
     tmpSortTime -= 7 * 24 * timeConstHour * getRogainingPoints(true, totalResult);
     tmpCachedStatus = getLegStatus(-1, true, totalResult);
@@ -948,6 +956,22 @@ void oTeam::fillInSortData(SortOrder so, int leg, bool linearLeg, map<int, int> 
         tmpSortTime += getNumShortening(lg) * timeConstHour * 24 * 10;
         tmpCachedStatus = getLegStatus(lg, false, totalResult);
       }
+      else if (so == ClassLiveResult) {
+        // Live result: Coded last passed control
+        pRunner r = getRunner(lg);
+        if (r) {
+          setTmpTime(r->currentControlTime.second);
+          tmpSortTime += r->currentControlTime.first * 10 * timeConstHour; // Control index is 0, -1, -2... for more controls         
+          tmpSortTime += getNumShortening(lg) * timeConstHour * 24 * 10;
+          tmpCachedStatus = getLegStatus(lg, true, totalResult);
+          if (tmpCachedStatus == StatusUnknown && r->tOnCourseResults.hasAnyRes)
+            tmpCachedStatus = StatusOK;
+        }
+        else {
+          setTmpTime(0);
+          tmpCachedStatus = StatusDNS;
+        }
+      }
       else {
         setTmpTime(getLegRunningTime(lg, true, totalResult));
         tmpSortTime += getNumShortening(lg) * timeConstHour * 24 * 10;
@@ -961,6 +985,48 @@ void oTeam::fillInSortData(SortOrder so, int leg, bool linearLeg, map<int, int> 
   }
   unsigned rawStatus = tmpCachedStatus;
   tmpSortStatus = RunnerStatusOrderMap[rawStatus < 100u ? rawStatus : 0];
+}
+
+template<SortOrder so>
+static bool oTeam::compareGeneral(const oTeam& a, const oTeam& b) {
+  if constexpr (so == ClassStartTimeClub)
+    return compareResultNoSno(a, b);
+  else if constexpr (so == ClubClassStartTime)
+    return compareResultClub(a, b);
+  else if constexpr (so == SortByEntryTime) {
+    auto dci = a.getDCI(), cdci = b.getDCI();
+    int ed = dci.getInt("EntryDate");
+    int ced = cdci.getInt("EntryDate");
+    if (ed != ced)
+      return ed > ced;
+    int et = dci.getInt("EntryTime");
+    int cet = cdci.getInt("EntryTime");
+    if (et != cet)
+      return et > cet;
+  }
+  else if constexpr (so == SortByBib) {
+    const wstring& xb = a.getBib();
+    const wstring& xbc = b.getBib();
+    if (xb != xbc) {
+      int bn = _wtoi(xb.c_str());
+      int bcn = _wtoi(xbc.c_str());
+      if (bn != 0 && bcn != 0 && bn != bcn)
+        return bn < bcn;
+      else
+        return xb < xbc;
+    }
+    if (a.StartNo != b.StartNo)
+      return a.StartNo < b.StartNo;
+    else
+      return a.Id < b.Id;
+  }
+  else {
+    return compareResult(a, b);
+  }
+
+  return CompareString(LOCALE_USER_DEFAULT, 0,
+    a.getName().c_str(), a.getName().length(),
+    b.getName().c_str(), b.getName().length()) == CSTR_LESS_THAN;
 }
 
 bool oEvent::sortTeams(SortOrder so, int leg, bool linearLeg) {
@@ -980,6 +1046,10 @@ bool oEvent::sortTeams(SortOrder so, int leg, bool linearLeg) {
     Teams.sort(oTeam::compareResultNoSno);
   else if (so == ClubClassStartTime)
     Teams.sort(oTeam::compareResultClub);
+  else if (so == SortOrder::SortByBib)
+    Teams.sort(oTeam::compareGeneral<SortOrder::SortByBib>);
+  else if (so == SortOrder::SortByEntryTime)
+    Teams.sort(oTeam::compareGeneral<SortOrder::SortByEntryTime>);
   else
     Teams.sort(oTeam::compareResult);
 
@@ -999,6 +1069,10 @@ bool oEvent::sortTeams(SortOrder so, int leg, bool linearLeg, vector<const oTeam
 
   if (so == ClubClassStartTime)
     sort(teams.begin(), teams.end(), [](const oTeam*& a, const oTeam*& b)->bool {return oTeam::compareResultClub(*a, *b); });
+  else if (so == SortOrder::SortByBib)
+    sort(teams.begin(), teams.end(), [](const oTeam*& a, const oTeam*& b)->bool {return oTeam::compareGeneral<SortOrder::SortByBib>(*a, *b); }); 
+  else if (so == SortOrder::SortByEntryTime)
+    sort(teams.begin(), teams.end(), [](const oTeam*& a, const oTeam*& b)->bool {return oTeam::compareGeneral<SortOrder::SortByEntryTime>(*a, *b); });
   else if (so != ClassStartTimeClub)
     sort(teams.begin(), teams.end(), [](const oTeam * &a, const oTeam * &b)->bool {return oTeam::compareResult(*a, *b); });
   else
@@ -1020,6 +1094,10 @@ bool oEvent::sortTeams(SortOrder so, int leg, bool linearLeg, vector<oTeam *> &t
 
   if (so == ClubClassStartTime)
     sort(teams.begin(), teams.end(), [](oTeam * &a, oTeam * &b)->bool {return oTeam::compareResultClub(*a, *b); });
+  else if (so == SortOrder::SortByBib)
+    sort(teams.begin(), teams.end(), [](oTeam * &a, oTeam * &b)->bool {return oTeam::compareGeneral<SortOrder::SortByBib>(*a, *b); });
+  else if (so == SortOrder::SortByEntryTime)
+    sort(teams.begin(), teams.end(), [](oTeam * & a, oTeam * &b)->bool {return oTeam::compareGeneral<SortOrder::SortByEntryTime>(*a, *b); });
   else if (so != ClassStartTimeClub)
     sort(teams.begin(), teams.end(), [](oTeam * &a, oTeam * &b)->bool {return oTeam::compareResult(*a, *b); });
   else

@@ -1,6 +1,6 @@
 ﻿/************************************************************************
     MeOS - Orienteering Software
-    Copyright (C) 2009-2024 Melin Software HB
+    Copyright (C) 2009-2026 Melin Software HB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,6 +55,8 @@ class LocalizerImpl
   map<wstring, wstring> unknown;
   void loadTable(const vector<string> &raw, const wstring &language);
   mutable oWordList *givenNames;
+
+  void addUnknown(const wstring& var);
 
 public:
 
@@ -145,8 +147,14 @@ const wstring &Localizer::LocalizerInternal::tl(const wstring &str) const {
   return *ret;
 }
 
-const wstring &LocalizerImpl::translate(const wstring &str, bool &found)
-{
+bool Localizer::LocalizerInternal::has(const string &str) const {
+  wstring strw(str.begin(), str.end());
+  bool found;
+  impl->translate(strw, found);
+  return found;
+}
+
+const wstring &LocalizerImpl::translate(const wstring &str, bool &found) {
   found = false;
   static int i = 0;
   const int bsize = 17;
@@ -162,12 +170,16 @@ const wstring &LocalizerImpl::translate(const wstring &str, bool &found)
     found = true;
     return value[i];
   }
+  auto isDigit = [](wchar_t c) {
+    return c >= '0' && c <= '9';
+  };
 
   if (str[0]==',' || str[0]==' ' || str[0]=='.'
-       || str[0]==':'  || str[0]==';' || str[0]=='<' || str[0]=='>' || str[0]=='-' || str[0]==0x96) {
+       || str[0]==':'  || str[0]==';' || str[0]=='<' || str[0]=='>' 
+       || str[0]=='-' || str[0]==0x96 || str[0]=='×' || isDigit(str[0]) || str[0] == '(') {
     unsigned k=1;
     while(str[k] && (str[k]==' ' || str[k]=='.' || str[k]==':' || str[k]=='<' || str[k]=='>'
-           || str[k]=='-' || str[k]==0x96))
+           || str[k]=='-' || str[k]==0x96 || str[k] == '×' || isDigit(str[k]) || str[k] == '('))
       k++;
 
     if (k<str.length()) {
@@ -215,18 +227,22 @@ const wstring &LocalizerImpl::translate(const wstring &str, bool &found)
     swap(value[i], ret);
     return value[i];
   }
+  else if (str[0] == '@') {
+    // Untranslated string with substitution
+    i = (i + 1) % bsize;
+    value[i] = str.substr(1);
+    found = true;
+    return value[i];
+  }
 
-  auto isDigit = [](wchar_t c) {
-    return c >= '0' && c <= '9';
-  };
-
-
+  
   wchar_t last = str[len-1];
   if (last != ':' && last != '.' && last != ' ' && last != ',' &&
-      last != ';' && last != '<' && last != '>' && last != '-' && last != 0x96 && !isDigit(last)) {
+      last != ';' && last != '<' && last != '>' && last != '-' &&
+      last != 0x96 && last != 215 && !isDigit(last) && last != ')') {
 #ifdef _DEBUG
     if (str.length()>1)
-      unknown[str] = L"";
+      addUnknown(str);
 #endif
     found = false;
     i = (i + 1)%bsize;
@@ -240,7 +256,8 @@ const wstring &LocalizerImpl::translate(const wstring &str, bool &found)
   while(pos>0) {
     wchar_t last = str[pos];
     if (last != ':' && last != ' ' && last != ',' && last != '.' &&
-        last != ';' && last != '<' && last != '>' && last != '-' && last != 0x96 && !isDigit(last))
+        last != ';' && last != '<' && last != '>' && last != '-' && 
+        last != 0x96 && last != 215 && !isDigit(last) && last != ')')
       break;
 
     pos = str.find_last_not_of(last, pos);
@@ -258,13 +275,19 @@ const wstring &LocalizerImpl::translate(const wstring &str, bool &found)
   }
 #ifdef _DEBUG
   if (key.length() > 1 && _wtoi(key.c_str()) == 0)
-    unknown[key] = L"";
+    addUnknown(key);
 #endif
 
   found = false;
   i = (i + 1)%bsize;
   value[i] = str;
   return value[i];
+}
+
+void LocalizerImpl::addUnknown(const wstring& key) {
+  if (unknown.emplace(key, L"").second) {
+    OutputDebugString((L"Missing resource: " + key).c_str());
+  }
 }
 
 void LocalizerImpl::saveUnknown(const wstring &file)
@@ -493,7 +516,7 @@ void LocalizerImpl::loadTable(const vector<string> &raw, const wstring &language
     string key = s.substr(0, spos);
     string value = s.substr(epos);
 
-    if (value.empty())
+    if (value.empty() || key.empty())
       throw std::exception("Bad file format.");
 
     if (value.size() > 1 && value[0] == 'Â') {
@@ -520,8 +543,14 @@ void LocalizerImpl::loadTable(const vector<string> &raw, const wstring &language
 
       table[okey] = output;
     }
-    else
-      table[fromUTF(key)] = fromUTF(value);
+    else {
+      const wstring &wkey = fromUTF(key);
+      const wstring &wvalue = fromUTF(value);
+      if (wkey.front() != '(' || wkey.back() != ')' || wvalue.front() != '(' || wvalue.back() != ')')
+        table[wkey] = wvalue;
+      else
+        table[wkey.substr(1, wkey.length() - 2)] = wvalue.substr(1, wvalue.length() - 2);
+    }
   }
 }
 
@@ -548,11 +577,17 @@ const wstring &Localizer::tl(const string &str) const {
   return linternal->tl(key);
 }
 
-
-const wstring Localizer::tl(const wstring &str, bool cap) const {
-  wstring w = linternal->tl(str);
-  if (capitalizeWords())
-    ::capitalizeWords(w);
-
+const wstring &Localizer::tl(const wstring &str, bool cap) const {
+  const wstring &w = linternal->tl(str);
+  if (cap && capitalizeWords()) {
+    wstring &wres = StringCache::getInstance().wget();
+    wres = w;
+    ::capitalizeWords(wres);
+    return wres;
+  }
   return w;
+}
+
+bool Localizer::has(const string &str) const {
+  return linternal->has(str);
 }
